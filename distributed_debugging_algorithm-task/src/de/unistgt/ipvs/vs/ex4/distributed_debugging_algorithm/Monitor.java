@@ -188,99 +188,10 @@ public class Monitor implements Runnable {
 			}
 		}
 
-//		while (true) {
-//
-//			State lastState = states.getLast();
-//
-//			int msgIdI = lastState.getProcessesMessagesCurrentIndex()[process_i_id];
-//			int msgIdJ = lastState.getProcessesMessagesCurrentIndex()[process_j_id];
-//
-//			if (msgIdI == processesMessages.get(process_i_id).size() - 1) {
-//				VectorClock i0 = processesMessages.get(process_i_id).get(msgIdI).getVectorClock();
-//				VectorClock j1 = processesMessages.get(process_j_id).get(msgIdJ + 1).getVectorClock();
-//
-//				if (i0.checkConsistency(process_j_id, j1)) {
-//					int[] messageIds = new int[numberOfProcesses];
-//					messageIds[process_i_id] = msgIdI;
-//					messageIds[process_j_id] = msgIdJ + 1;
-//
-//					State nextState = new State(messageIds);
-//					states.add(nextState);
-//
-//					if (msgIdJ + 1 == processesMessages.get(process_j_id).size() - 1) {
-//						break;
-//					} else {
-//						continue;
-//					}
-//				} else {
-//					System.out.println("failed LastElement");
-//				}
-//			}
-//
-//			if (msgIdJ == processesMessages.get(process_j_id).size() - 1) {
-//				VectorClock j0 = processesMessages.get(process_j_id).get(msgIdJ).getVectorClock();
-//				VectorClock i1 = processesMessages.get(process_i_id).get(msgIdI + 1).getVectorClock();
-//
-//				if (j0.checkConsistency(process_i_id, i1)) {
-//					int[] messageIds = new int[numberOfProcesses];
-//					messageIds[process_i_id] = msgIdI + 1;
-//					messageIds[process_j_id] = msgIdJ;
-//
-//					State nextState = new State(messageIds);
-//					states.add(nextState);
-//
-//					if (msgIdI + 1 == processesMessages.get(process_i_id).size() - 1) {
-//						break;
-//					} else {
-//						continue;
-//					}
-//				} else {
-//					System.out.println("failed LastElement");
-//				}
-//			}
-//
-//			VectorClock i0 = processesMessages.get(process_i_id).get(msgIdI).getVectorClock();
-//			VectorClock i1 = processesMessages.get(process_i_id).get(msgIdI + 1).getVectorClock();
-//			VectorClock j0 = processesMessages.get(process_j_id).get(msgIdJ).getVectorClock();
-//			VectorClock j1 = processesMessages.get(process_j_id).get(msgIdJ + 1).getVectorClock();
-//
-//			if (i0.checkConsistency(process_j_id, j1)) {
-//				int[] messageIds = new int[numberOfProcesses];
-//				messageIds[process_i_id] = msgIdI;
-//				messageIds[process_j_id] = msgIdJ + 1;
-//
-//				State nextState = new State(messageIds);
-//				states.add(nextState);
-//
-//			} else {
-//				if (j0.checkConsistency(process_i_id, i1)) {
-//					int[] messageIds = new int[numberOfProcesses];
-//					messageIds[process_i_id] = msgIdI + 1;
-//					messageIds[process_j_id] = msgIdJ;
-//
-//					State nextState = new State(messageIds);
-//					states.add(nextState);
-//				} else {
-//					System.out.println("failed");
-//				}
-//			}
-//
-//			// break
-//			lastState = states.getLast();
-//
-//			msgIdI = lastState.getProcessesMessagesCurrentIndex()[process_i_id];
-//			msgIdJ = lastState.getProcessesMessagesCurrentIndex()[process_j_id];
-//
-//			if ((msgIdI == processesMessages.get(process_i_id).size() - 1)
-//					&& (msgIdJ == processesMessages.get(process_j_id).size() - 1)) {
-//				System.out.println("never happens");
-//				break;
-//			}
-//
-//		}
+
 
 		checkPredicate(0, process_i_id, process_j_id);
-		checkPredicate(0, process_j_id, process_i_id);
+		//checkPredicate(0, process_j_id, process_i_id);
 		checkPredicate(1, process_i_id, process_j_id);
 		checkPredicate(2, process_i_id, process_j_id);
 		System.out.println("check");
@@ -326,7 +237,7 @@ public class Monitor implements Runnable {
 			System.out.println("test");
 		}
 
-		return states;
+		return reachStates;
 		// TODO
 		/*
 		 * Given a state, implement a code that find all reachable states. The
@@ -359,9 +270,12 @@ public class Monitor implements Runnable {
 		 * case 1: ... }
 		 */
 
-		List<State> tempStates = states;
+		LinkedList<State> tempStates = new LinkedList<State>();
+		tempStates.add(states.getFirst());
+		
 		int L = 0;
-
+		
+		//possibly check
 		whilLeabel:
 		while(true){
 			for (State tempStat : tempStates) {
@@ -376,12 +290,16 @@ public class Monitor implements Runnable {
 				switch (predicateNo) {
 				case 0:
 					predicate = Predicate.predicate0(newestMessageI, newestMessageJ);
+					break;
 				case 1:
 					predicate = Predicate.predicate1(newestMessageI, newestMessageJ);
+					break;
 				case 2:
 					predicate = Predicate.predicate2(newestMessageI, newestMessageJ);
+					break;
 				case 3:
 					predicate = Predicate.predicate3(newestMessageI, newestMessageJ);
+					break;
 				}
 
 				if(predicate){
@@ -389,36 +307,35 @@ public class Monitor implements Runnable {
 					break whilLeabel;
 				}
 			}
-			List<State> tempStates2 = new LinkedList<>();
+			LinkedList<State> reachableList = new LinkedList<State>();
 
 			L++;
 
 			for (State state3 : tempStates) {
-				int [] mesIndex = state3.getProcessesMessagesCurrentIndex();
-				int sum = 0;
-				for(int i = 0; i< numberOfProcesses;i++){
-					sum+=mesIndex[i];
-				}
-
-				if(sum-1==L){
-					tempStates2.addAll(findReachableStates(tempStates.get(0)));
-				}
+				reachableList.addAll(findReachableStates(state3));	// to optimize remove duplicates			
 			}
 
-			tempStates = tempStates2;
+			tempStates = reachableList;
 
 			if(tempStates.size() == 0){
 				break whilLeabel;
 			}
 
 		}
+		
+		
+		
+		//definetly true check
+		definitelyTruePredicatesIndex[predicateNo] = true;
+		
+		
+		tempStates.clear();
+		
+		int msgI = states.getFirst().getProcessesMessagesCurrentIndex()[process_i_Id];
+		int msgJ = states.getFirst().getProcessesMessagesCurrentIndex()[process_j_id];
 
-
-		List<Message> processIMessages = this.processesMessages.get(process_i_Id);
-		List<Message> processJMessages = this.processesMessages.get(process_j_id);
-
-		Message newestMessageI = processIMessages.get(processIMessages.size() - 1);
-		Message newestMessageJ = processJMessages.get(processJMessages.size() - 1);
+		Message newestMessageI = processesMessages.get(process_i_Id).get(msgI);
+		Message newestMessageJ = processesMessages.get(process_j_id).get(msgJ);
 
 		boolean predicate = false;
 
@@ -436,8 +353,68 @@ public class Monitor implements Runnable {
 			predicate = Predicate.predicate3(newestMessageI, newestMessageJ);
 			break;
 		}
+		
+		if(!predicate) tempStates.add(states.getFirst());
+		
 
-		return predicate;
+		
+		
+		whilLeabel2:
+		while(tempStates.size() != 0){
+			//create reachable list
+			LinkedList<State> reachableList = new LinkedList<State>();
+			for (State state3 : tempStates) {
+				
+				for (State stateReachble : findReachableStates(state3)) {
+					if(!reachableList.contains(stateReachble)) reachableList.add(stateReachble)	;				
+				}
+				//reachableList.addAll();	// to optimize remove duplicates			
+			}					
+			
+			if(reachableList.size() == 0) {
+				definitelyTruePredicatesIndex[predicateNo] = false;
+				break whilLeabel2;
+			}
+			
+			tempStates = (LinkedList<State>) reachableList.clone();
+			
+			//remove all phi(S) == False
+			for (State tempStat : reachableList) {				
+				
+				msgI = tempStat.getProcessesMessagesCurrentIndex()[process_i_Id];
+				msgJ = tempStat.getProcessesMessagesCurrentIndex()[process_j_id];
+
+				newestMessageI = processesMessages.get(process_i_Id).get(msgI);
+				newestMessageJ = processesMessages.get(process_j_id).get(msgJ);
+
+				predicate = false;
+
+				switch (predicateNo) {
+				case 0:
+					predicate = Predicate.predicate0(newestMessageI, newestMessageJ);
+					break;
+				case 1:
+					predicate = Predicate.predicate1(newestMessageI, newestMessageJ);
+					break;
+				case 2:
+					predicate = Predicate.predicate2(newestMessageI, newestMessageJ);
+					break;
+				case 3:
+					predicate = Predicate.predicate3(newestMessageI, newestMessageJ);
+					break;
+				}
+
+				if(predicate){
+					tempStates.remove(tempStat);
+				}
+			}
+
+
+		}
+
+
+
+		return true;
 
 	}
 
